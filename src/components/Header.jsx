@@ -20,7 +20,7 @@ class Header extends Component {
 
   async userLog() {
     const user = await getUser();
-    console.log(user);
+
     this.setState({
       name: user.name,
       loading: false,
@@ -29,12 +29,15 @@ class Header extends Component {
 
   render() {
     const { name, loading } = this.state;
+    if (loading) return <Loading />;
     return (
-      loading ? (<Loading />) : (
-        <header data-testid="header-component">
-          <h3>{ name }</h3>
-        </header>
-      )
+      <header data-testid="header-component">
+        <h3
+          data-testid="header-user-name"
+        >
+          { name }
+        </h3>
+      </header>
     );
   }
 }
