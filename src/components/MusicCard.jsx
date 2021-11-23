@@ -20,6 +20,7 @@ export default class MusicCard extends Component {
           <input
             type="checkbox"
             id="trackId"
+            name="trackId"
             value={ trackId }
             data-testid={ `checkbox-music-${trackId}` }
             checked={ favoriteSong }

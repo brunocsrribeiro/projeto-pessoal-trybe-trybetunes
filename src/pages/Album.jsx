@@ -28,6 +28,10 @@ class Album extends Component {
     this.onGetFavorites();
   }
 
+  componentDidUpdate() {
+    this.onGetFavorites();
+  }
+
   async onHandleMusics() {
     const { match: { params: { id } } } = this.props;
 
@@ -54,9 +58,9 @@ class Album extends Component {
   async onGetFavorites() {
     const myFavorite = await getFavoriteSongs();
 
-    this.setState({
+    this.setState(() => ({
       myFavoriteTracks: myFavorite,
-    });
+    }));
   }
 
   async onSongs(myMusic) {
@@ -78,7 +82,6 @@ class Album extends Component {
         loading: false,
       });
     }
-    this.onGetFavorites();
   }
 
   render() {
@@ -91,26 +94,28 @@ class Album extends Component {
     } = this.state;
 
     return (
-      loading
-        ? <Loading />
-        : (
-          <div data-testid="page-album">
-            <Header />
-            <h1
-              data-testid="artist-name"
-            >
-              { artistName }
-            </h1>
-            <h2
-              data-testid="album-name"
-            >
-              { collectionName }
-            </h2>
-            <div>
-              {
-                musics
-                  .filter((tracks) => tracks.trackName && tracks.previewUrl)
-                  .map((music) => (
+      <>
+        <div data-testid="page-album">
+          <Header />
+          <h1
+            data-testid="artist-name"
+          >
+            { artistName }
+          </h1>
+          <h2
+            data-testid="album-name"
+          >
+            { collectionName }
+          </h2>
+        </div>
+        <div>
+          { loading
+            ? <Loading />
+            : (
+              musics
+                .filter((tracks) => tracks.trackName && tracks.previewUrl)
+                .map((music) => (
+                  <div key={ music.trackId }>
                     <MusicCard
                       key={ music.trackId }
                       favoriteSong={ myFavoriteTracks
@@ -118,11 +123,11 @@ class Album extends Component {
                       funcFavorites={ () => this.onSongs(music) }
                       { ...music }
                     />
-                  ))
-              }
-            </div>
-          </div>
-        )
+                  </div>
+                ))
+            )}
+        </div>
+      </>
     );
   }
 }
