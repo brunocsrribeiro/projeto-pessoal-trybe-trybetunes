@@ -4,21 +4,28 @@ import Header from '../components/Header';
 import Loading from '../components/Loading';
 import MusicCard from '../components/MusicCard';
 import getMusics from '../services/musicsAPI';
+import { getFavoriteSongs, addSong, removeSong } from '../services/favoriteSongsAPI';
 
 class Album extends Component {
   constructor() {
     super();
 
     this.state = {
-      loading: '',
+      artistName: '',
+      collectionName: '',
+      loading: false,
       musics: [],
+      myFavoriteTracks: [],
     };
 
     this.onHandleMusics = this.onHandleMusics.bind(this);
+    this.onGetFavorites = this.onGetFavorites.bind(this);
+    this.onSongs = this.onSongs.bind(this);
   }
 
   componentDidMount() {
     this.onHandleMusics();
+    this.onGetFavorites();
   }
 
   async onHandleMusics() {
@@ -29,48 +36,92 @@ class Album extends Component {
     });
 
     const track = await getMusics(id);
+    const {
+      artistName,
+      collectionName,
+    } = track[0];
 
     if (track.length > 0) {
       this.setState({
+        artistName,
+        collectionName,
         musics: track,
         loading: false,
       });
     }
   }
 
+  async onGetFavorites() {
+    const myFavorite = await getFavoriteSongs();
+
+    this.setState({
+      myFavoriteTracks: myFavorite,
+    });
+  }
+
+  async onSongs(myMusic) {
+    const { myFavoriteTracks } = this.state;
+    const isFavorite = myFavoriteTracks.some((song) => song.trackId === myMusic.trackId);
+
+    this.setState({
+      loading: true,
+    });
+
+    if (!isFavorite) {
+      await addSong(myMusic);
+      this.setState({
+        loading: false,
+      });
+    } else {
+      await removeSong(myMusic);
+      this.setState({
+        loading: false,
+      });
+    }
+    this.onGetFavorites();
+  }
+
   render() {
-    const { loading, musics } = this.state;
+    const {
+      loading,
+      musics,
+      myFavoriteTracks,
+      artistName,
+      collectionName,
+    } = this.state;
+
     return (
       loading
         ? <Loading />
         : (
-          musics.length > 0 && (
-            <div data-testid="page-album">
-              <Header />
-              <h1
-                data-testid="artist-name"
-              >
-                {musics[0].artistName}
-              </h1>
-              <h2
-                data-testid="album-name"
-              >
-                {musics[0].collectionName}
-              </h2>
-              <div>
-                {
-                  musics
-                    .filter((tracks) => tracks.trackName && tracks.previewUrl)
-                    .map((music) => (
-                      <MusicCard
-                        key={ music.trackId }
-                        music={ music }
-                      />
-                    ))
-                }
-              </div>
+          <div data-testid="page-album">
+            <Header />
+            <h1
+              data-testid="artist-name"
+            >
+              { artistName }
+            </h1>
+            <h2
+              data-testid="album-name"
+            >
+              { collectionName }
+            </h2>
+            <div>
+              {
+                musics
+                  .filter((tracks) => tracks.trackName && tracks.previewUrl)
+                  .map((music) => (
+                    <MusicCard
+                      key={ music.trackId }
+                      favoriteSong={ myFavoriteTracks
+                        .some((song) => song.trackId === music.trackId) }
+                      funcFavorites={ () => this.onSongs(music) }
+                      { ...music }
+                    />
+                  ))
+              }
             </div>
-          )
+          </div>
         )
     );
   }
